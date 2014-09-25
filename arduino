@@ -1,0 +1,325 @@
+
+/*
+ * Web Server
+ *
+ * A simple web server that shows the value of the analog input pins.
+ *
+ * Ethernet shield attached to pins 10, 11, 12, 13
+ 
+ *
+ */ 
+
+
+
+#include <SPI.h>
+#include <Ethernet.h>
+#include <stdio.h>
+#include <string.h>
+#include <dht.h>
+#include <SD.h>
+
+
+
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+byte ip[] =  { 192, 168, 12, 50 }; 
+char formkey[] = "13ByPmU3UYoo4uvdJYuDCIS1Y71lblAyUjWKokX-NGlk";
+byte server[] = { 209,85,229,101 };
+ 
+/* Set the DHT */
+dht DHT; 
+
+int i=0;
+int j=0;
+
+ 
+int ledPower=5;
+int delayTime=280;
+int delayTime2=40;
+float offTime=9680;
+
+int dustPin=1;
+double dustVal=0.0;
+double dustValraw=0.0;
+double old_dustVal=0.0;
+
+int DHT_PIN = 3;
+
+double old_temperature = 0.0;
+double new_temperature = 0.0;
+double old_humidity = 0.0;
+double new_humidity = 0.0;
+double F=0.0;
+double C=0.0;
+
+// Set the variable to get the Air-quality
+int old_air_Q_val = 0;
+int new_air_Q_val = 0;
+
+
+double new_HIF = 0.0;
+double new_HI = 0.0;
+double old_HI = 0.0;
+
+int new_UV = 0;
+int old_UV_val = 0;
+int UV_val = 0;
+int old_UV = 0;
+
+//SD
+char filename[] = "test.csv";
+int SDOK = 1;
+
+int count = 0;
+
+File myFile;
+
+char CurrentDateTime[20];
+
+
+EthernetServer server(80); 
+
+File webFile;
+
+void setup()
+{
+  Ethernet.begin(mac, ip);
+  server.begin();
+  pinMode(ledPower,OUTPUT);
+  
+      // initialize SD card
+    Serial.println("Initializing SD card...");
+    if (!SD.begin(4)) {
+        Serial.println("ERROR - SD card initialization failed!");
+        return;    // init failed
+    }
+    Serial.println("SUCCESS - SD card initialized.");
+    // check for index.htm file
+    if (!SD.exists("index.htm")) {
+        Serial.println("ERROR - Can't find index.htm file!");
+        return;  // can't find index file
+    }
+    Serial.println("SUCCESS - Found index.htm file.");
+
+  
+  //SD
+  if(!SD.begin(4))
+  {
+    SDOK == 0;
+  }
+  else
+  {    
+    if(SD.exists(filename))
+    {
+      if(SD.remove(filename))
+      {
+        myFile = SD.open(filename , FILE_WRITE);
+    
+        if(myFile)
+        {
+          myFile.print(F("Count,Temperature,Humidity,Heat Index,PM2.5,UV,Air Pollution Index"));
+          myFile.print(F("\n"));
+        }
+        
+        myFile.close();
+        
+        SDOK = 1;
+      }
+      else
+      {
+        SDOK = 0;
+      }
+    }
+    else
+    {
+      SDOK = 1;
+    }
+  }
+} 
+
+void readdata()
+{
+   // Get Humidity & Temperature with DT22
+          int chk = DHT.read22(DHT_PIN);
+          if(chk == DHTLIB_OK)
+          {
+              //old_humidity = new_humidity;
+              //old_temperature = new_temperature;
+              
+              new_humidity = DHT.humidity;
+              new_temperature = DHT.temperature;
+          }
+          
+          //heat index
+          //old_HI=new_HI;
+          F=new_temperature*9.0/5.0+32.0;
+          C=new_temperature;
+          //new_HIF=-42.379+2.04901523*F+10.14333127*new_humidity/100.0-0.22475541*F*new_humidity/100.0-0.00683783*F*F-0.05481717*new_humidity/100.0*new_humidity/100.0+0.00122874*F*F*new_humidity/100.0+0.00085282*F*new_humidity/100.0*new_humidity/100.0-0.00000199*F*F*new_humidity/100.0*new_humidity/100.0;
+          new_HIF=-42.379+2.04901523*F+10.14333127*new_humidity-0.22475541*F*new_humidity-0.00683783*F*F-0.05481717*new_humidity*new_humidity+0.00122874*F*F*new_humidity+0.00085282*F*new_humidity*new_humidity-0.00000199*F*F*new_humidity*new_humidity;
+        //  new_HI =-42.379+2.04901523*C+10.14333127*new_humidity/100.0-0.22475541*C*new_humidity/100.0-0.00683783*C*C-0.05481717*new_humidity/100.0*new_humidity/100.0+0.00122874*C*C*new_humidity/100.0+0.00085282*C*new_humidity/100.0*new_humidity/100.0-0.00000199*C*C*new_humidity/100.0*new_humidity/100.0;
+        new_HI=(new_HIF-32.0)*5.0/9.0;
+          if(new_HI<=new_temperature)
+          {
+            new_HI=new_temperature;
+          }
+          
+          // ledPower is any digital pin on the arduino connected to Pin 3 on the sensor
+	  digitalWrite(ledPower,LOW); // power on the LED
+	  delayMicroseconds(delayTime);
+          //old_dustVal=dustVal;
+	  dustValraw=analogRead(dustPin); // read the dust value via pin 5 on the sensor
+          dustVal=((dustValraw/1023.0*5.0)*0.17-0.1)*1000.0;
+          if(dustVal<=0.00)
+          {
+            dustVal=0.00;
+          }
+	  delayMicroseconds(delayTime2);
+	  digitalWrite(ledPower,HIGH); // turn the LED off
+	  delayMicroseconds(offTime);
+          
+          //old_air_Q_val = new_air_Q_val;
+          new_air_Q_val = analogRead(4);
+           
+          
+          // Get UV
+          //old_UV = new_UV;
+          //old_UV_val = UV_val;
+          UV_val = analogRead(0);
+          
+          if(UV_val < 10)
+            new_UV = 0;
+          else if(UV_val < 46)
+            new_UV = 1;
+          else if(UV_val < 65)
+            new_UV = 2;
+          else if(UV_val < 83)
+            new_UV = 3;
+          else if(UV_val < 103)
+            new_UV = 4;
+          else if(UV_val < 124)
+            new_UV = 5;
+          else if(UV_val < 142)
+            new_UV = 6;
+          else if(UV_val < 162)
+            new_UV = 7;
+          else if(UV_val < 180)
+            new_UV = 8;
+          else if(UV_val < 200)
+            new_UV = 9;
+          else if(UV_val < 221)
+            new_UV = 10;
+          else
+            new_UV = 11;
+            
+            
+               
+}
+
+void WriteFile()
+{
+  if(SDOK)
+  {
+    myFile = SD.open(filename , FILE_WRITE);
+    
+    if(myFile)
+    {
+      myFile.print(count);
+      myFile.print(F(","));
+      myFile.print(new_temperature);
+      myFile.print(F(","));
+      myFile.print(new_humidity);
+      myFile.print(F(","));
+      myFile.print(new_HI);
+      myFile.print(F(","));
+      myFile.print(dustVal);
+      myFile.print(F(","));
+      myFile.print(new_UV);
+      myFile.print(F(","));
+      if(new_air_Q_val<=150)
+          {
+            myFile.print(F("Low"));
+          }
+          else if(new_air_Q_val<=350)
+          {
+            myFile.print(F("Normal"));
+          }
+          else if(new_air_Q_val<=550)
+          {
+            myFile.print(F("High"));
+          }
+          else if(new_air_Q_val<=750)
+          {
+            myFile.print(F("Very High"));
+          }
+          else
+          {
+            myFile.print(F("Severe"));
+          }
+      myFile.print(F("\n"));
+     
+      
+      myFile.close();
+    }
+  } 
+  
+  
+}
+
+void loop()
+{
+  //0.5s
+  if(j>=50)
+  {
+              readdata();
+              j=0;
+  }
+  else
+  {
+    j++;
+  }
+
+  //10s
+  if(i>=1000)
+  {
+              count++;
+              WriteFile();
+              i=0;
+  }
+  else
+  {
+    i++;
+  }   
+}
+void loop(){
+  String data;
+  data+= "";
+  data+= "entry_583758502=";
+  data+= new_temperature;
+  data+= "entry_1838066570=";
+  data+= new_humidity;
+  data+= "entry_432135458";
+  data+= new_UV;
+  data+= "entry_196531609";
+  data+= dust_val;
+  data+= "entry_1506453406";
+  data+= new_HI;  
+  
+  if (client.connect()) {
+    Serial.println("connected");
+ 
+    client.print("POST /formResponse?formkey=");
+    client.print(formkey);
+    client.println("&ifq HTTP/1.1");
+    client.println("Host: spreadsheets.google.com");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Connection: close");
+    client.print("Content-Length: ");
+    client.println(data.length());
+    client.println();
+    client.print(data);
+    client.println();
+  }
+  delay(1000);
+  if (!client.connected()){
+    client.print("disconnecting");
+    client.stop();
+}

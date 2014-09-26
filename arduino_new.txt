@@ -16,8 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <dht.h>
-#include <SD.h>
-
 
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -65,17 +63,12 @@ int old_UV_val = 0;
 int UV_val = 0;
 int old_UV = 0;
 
-
-int count = 0;
-
-File myFile;
-
 char CurrentDateTime[20];
 
 
 EthernetServer server(80); 
 
-File webFile;
+
 
 void setup(){
   Ethernet.begin(mac, ip);
@@ -162,52 +155,7 @@ void readdata()
                
 }
 
-void WriteFile()
-{
-  if(SDOK)
-  {
-    myFile = SD.open(filename , FILE_WRITE);
-    
-    if(myFile)
-    {
-      myFile.print(count);
-      myFile.print(F(","));
-      myFile.print(new_temperature);
-      myFile.print(F(","));
-      myFile.print(new_humidity);
-      myFile.print(F(","));
-      myFile.print(new_HI);
-      myFile.print(F(","));
-      myFile.print(dustVal);
-      myFile.print(F(","));
-      myFile.print(new_UV);
-      myFile.print(F(","));
-      if(new_air_Q_val<=150)
-          {
-            myFile.print(F("Low"));
-          }
-          else if(new_air_Q_val<=350)
-          {
-            myFile.print(F("Normal"));
-          }
-          else if(new_air_Q_val<=550)
-          {
-            myFile.print(F("High"));
-          }
-          else if(new_air_Q_val<=750)
-          {
-            myFile.print(F("Very High"));
-          }
-          else
-          {
-            myFile.print(F("Severe"));
-          }
-      myFile.print(F("\n"));
-     
-      
-      myFile.close();
-    }
-  } 
+
   
   
 }
@@ -225,17 +173,7 @@ void loop()
     j++;
   }
 
-  //10s
-  if(i>=1000)
-  {
-              count++;
-              WriteFile();
-              i=0;
-  }
-  else
-  {
-    i++;
-  }   
+
 }
 
 void loop(){
@@ -267,7 +205,7 @@ void loop(){
     client.print(data);
     client.println();
   }
-  delay(1000);
+  delay(500);
   if (!client.connected()){
     client.print("disconnecting");
     client.stop();

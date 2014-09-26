@@ -65,9 +65,6 @@ int old_UV_val = 0;
 int UV_val = 0;
 int old_UV = 0;
 
-//SD
-char filename[] = "test.csv";
-int SDOK = 1;
 
 int count = 0;
 
@@ -80,61 +77,12 @@ EthernetServer server(80);
 
 File webFile;
 
-void setup()
-{
+void setup(){
   Ethernet.begin(mac, ip);
   server.begin();
   pinMode(ledPower,OUTPUT);
-  
-      // initialize SD card
-    Serial.println("Initializing SD card...");
-    if (!SD.begin(4)) {
-        Serial.println("ERROR - SD card initialization failed!");
-        return;    // init failed
-    }
-    Serial.println("SUCCESS - SD card initialized.");
-    // check for index.htm file
-    if (!SD.exists("index.htm")) {
-        Serial.println("ERROR - Can't find index.htm file!");
-        return;  // can't find index file
-    }
-    Serial.println("SUCCESS - Found index.htm file.");
+}
 
-  
-  //SD
-  if(!SD.begin(4))
-  {
-    SDOK == 0;
-  }
-  else
-  {    
-    if(SD.exists(filename))
-    {
-      if(SD.remove(filename))
-      {
-        myFile = SD.open(filename , FILE_WRITE);
-    
-        if(myFile)
-        {
-          myFile.print(F("Count,Temperature,Humidity,Heat Index,PM2.5,UV,Air Pollution Index"));
-          myFile.print(F("\n"));
-        }
-        
-        myFile.close();
-        
-        SDOK = 1;
-      }
-      else
-      {
-        SDOK = 0;
-      }
-    }
-    else
-    {
-      SDOK = 1;
-    }
-  }
-} 
 
 void readdata()
 {
@@ -289,7 +237,9 @@ void loop()
     i++;
   }   
 }
+
 void loop(){
+
   String data;
   data+= "";
   data+= "entry_583758502=";
@@ -304,7 +254,6 @@ void loop(){
   data+= new_HI;  
   
   if (client.connect()) {
-    Serial.println("connected");
  
     client.print("POST /formResponse?formkey=");
     client.print(formkey);

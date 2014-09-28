@@ -57,16 +57,8 @@ int old_UV = 0;
 void setup()
 {
   Ethernet.begin(mac);
-  Serial.begin(9600);
-  delay(1000);
   client.connect(server, 80);
   pinMode(ledPower,OUTPUT);
-  if(client.connect(server, 80)){
-    Serial.println("connected");
-  }else{
-    Serial.println("connection failed");
-  }
-    Serial.println(Ethernet.localIP());
 } 
 
 void readdata()
@@ -165,16 +157,17 @@ void loop()
     data+= new_temperature;
     data+= "entry_1838066570=";
     data+= new_humidity;
-    data+= "entry_432135458";
+    data+= "entry_432135458=";
     data+= new_UV;
-    data+= "entry_196531609";
+    data+= "entry_196531609=";
     data+= new_air_Q_val;
-    data+= "entry_1506453406";
+    data+= "entry_1506453406=";
     data+= dustVal;  
+    data+= "entry.1591788574=";
+    data+= new_HI;
+    data+= "&submit=Submit";
   
   if (client.available()) {
- 
-        Serial.println("connected");
  
         client.print("POST /formResponse?formkey=");
         client.print(formkey);
@@ -187,20 +180,7 @@ void loop()
         client.println();
         client.print(data);
         client.println();
- 
-        Serial.print("POST /formResponse?formkey=");
-        Serial.print(formkey);
-        Serial.println("&ifq HTTP/1.1");
-        Serial.println("Host: spreadsheets.google.com");
-        Serial.println("Content-Type: application/x-www-form-urlencoded");
-        Serial.println("Connection: close");
-        Serial.print("Content-Length: ");
-        Serial.println(data.length());
-        Serial.println();
-        Serial.print(data);
-        Serial.println();
- 
-     
+
     }
     delay(500);
     if (!client.connected()){

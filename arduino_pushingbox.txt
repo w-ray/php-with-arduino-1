@@ -8,7 +8,7 @@
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 char formkey[] = "13ByPmU3UYoo4uvdJYuDCIS1Y71lblAyUjWKokX-NGlk";
-byte server[] = { 173 ,194, 46, 34 };
+char server[] = "api.pushingbox.com";
 EthernetClient client;
  
  

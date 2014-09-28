@@ -1,17 +1,19 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <stdio.h>
-#include <string.h>
+#include <string.h>`  
 #include <dht.h>
 
 
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-byte ip[] =  { 192, 168, 12, 50 }; 
 char formkey[] = "13ByPmU3UYoo4uvdJYuDCIS1Y71lblAyUjWKokX-NGlk";
-byte server[] = { 209,85,229,101 };
+byte server[] = { 173 ,194, 46, 34 };
 EthernetClient client;
  
+ 
+
+
 /* Set the DHT */
 dht DHT; 
 
@@ -54,9 +56,17 @@ int old_UV = 0;
 
 void setup()
 {
-  Ethernet.begin(mac, ip);
-  pinMode(ledPower,OUTPUT);
+  Ethernet.begin(mac);
+  Serial.begin(9600);
+  delay(1000);
   client.connect(server, 80);
+  pinMode(ledPower,OUTPUT);
+  if(client.connect(server, 80)){
+    Serial.println("connected");
+  }else{
+    Serial.println("connection failed");
+  }
+    Serial.println(Ethernet.localIP());
 } 
 
 void readdata()
@@ -164,17 +174,33 @@ void loop()
   
   if (client.available()) {
  
-      client.print("POST /formResponse?formkey=");
-      client.print(formkey);
-      client.println("&ifq HTTP/1.1");
-      client.println("Host: spreadsheets.google.com");
-      client.println("Content-Type: application/x-www-form-urlencoded");
-      client.println("Connection: close");
-      client.print("Content-Length: ");
-      client.println(data.length());
-      client.println();
-      client.print(data);
-      client.println();
+        Serial.println("connected");
+ 
+        client.print("POST /formResponse?formkey=");
+        client.print(formkey);
+        client.println("&ifq HTTP/1.1");
+        client.println("Host: spreadsheets.google.com");
+        client.println("Content-Type: application/x-www-form-urlencoded");
+        client.println("Connection: close");
+        client.print("Content-Length: ");
+        client.println(data.length());
+        client.println();
+        client.print(data);
+        client.println();
+ 
+        Serial.print("POST /formResponse?formkey=");
+        Serial.print(formkey);
+        Serial.println("&ifq HTTP/1.1");
+        Serial.println("Host: spreadsheets.google.com");
+        Serial.println("Content-Type: application/x-www-form-urlencoded");
+        Serial.println("Connection: close");
+        Serial.print("Content-Length: ");
+        Serial.println(data.length());
+        Serial.println();
+        Serial.print(data);
+        Serial.println();
+ 
+     
     }
     delay(500);
     if (!client.connected()){

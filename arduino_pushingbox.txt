@@ -150,41 +150,27 @@ void loop()
   {
     j++;
   }
-
+}
+void datalist(){
     String data;
     data+= "";
-    data+= "entry_583758502=";
+    data+= "GET /pushingbox?devid=v4262C764FDBA371&temp=";
     data+= new_temperature;
-    data+= "entry_1838066570=";
+    data+= "GET /pushingbox?devid=v4262C764FDBA371&humid=";
     data+= new_humidity;
-    data+= "entry_432135458=";
+    data+= "GET /pushingbox?devid=v4262C764FDBA371&uv=";
     data+= new_UV;
-    data+= "entry_196531609=";
+    data+= "GET /pushingbox?devid=v4262C764FDBA371&air=";
     data+= new_air_Q_val;
-    data+= "entry_1506453406=";
+    data+= "GET /pushingbox?devid=v4262C764FDBA371&dustval=";
     data+= dustVal;  
-    data+= "entry.1591788574=";
+    data+= "GET /pushingbox?devid=v4262C764FDBA371&heatindex=";
     data+= new_HI;
-    data+= "&submit=Submit";
-  
-  if (client.available()) {
- 
-        client.print("POST /formResponse?formkey=");
-        client.print(formkey);
-        client.println("&ifq HTTP/1.1");
-        client.println("Host: spreadsheets.google.com");
-        client.println("Content-Type: application/x-www-form-urlencoded");
-        client.println("Connection: close");
-        client.print("Content-Length: ");
-        client.println(data.length());
-        client.println();
-        client.print(data);
-        client.println();
-
-    }
-    delay(500);
-    if (!client.connected()){
-      client.print("disconnecting");
-      client.stop();
+    data+= "HTTP/1.1";
   }
+  void sendData(){
+    client.println("Host: api.pushingbox.com");
+    client.println("Connection: close");
+    client.println();
 }
+    

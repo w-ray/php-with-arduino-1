@@ -1,5 +1,3 @@
-//PAWMS
-
 #include <SPI.h>
 #include <Ethernet.h>
 #include <stdio.h>
@@ -12,10 +10,9 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] =  { 192, 168, 12, 50 }; 
 char formkey[] = "13ByPmU3UYoo4uvdJYuDCIS1Y71lblAyUjWKokX-NGlk";
 byte server[] = { 209,85,229,101 };
-EthernetClient client(server, 80);
-
+EthernetClient client;
  
-
+/* Set the DHT */
 dht DHT; 
 
 int i=0;
@@ -41,6 +38,7 @@ double new_humidity = 0.0;
 double F=0.0;
 double C=0.0;
 
+// Set the variable to get the Air-quality
 int old_air_Q_val = 0;
 int new_air_Q_val = 0;
 
@@ -54,14 +52,12 @@ int old_UV_val = 0;
 int UV_val = 0;
 int old_UV = 0;
 
-
-
-void setup(){
+void setup()
+{
   Ethernet.begin(mac, ip);
-  server.begin();
   pinMode(ledPower,OUTPUT);
-}
-
+  client.connect(server, 80);
+} 
 
 void readdata()
 {
@@ -135,16 +131,10 @@ void readdata()
           else if(UV_val < 221)
             new_UV = 10;
           else
-            new_UV = 11;
-            
-            
-               
+            new_UV = 11;        
 }
 
 
-  
-  
-}
 
 void loop()
 {
@@ -159,40 +149,36 @@ void loop()
     j++;
   }
 
-
-}
-
-void loop(){
-
-  String data;
-  data+= "";
-  data+= "entry_583758502=";
-  data+= new_temperature;
-  data+= "entry_1838066570=";
-  data+= new_humidity;
-  data+= "entry_432135458";
-  data+= new_UV;
-  data+= "entry_196531609";
-  data+= dust_val;
-  data+= "entry_1506453406";
-  data+= new_HI;  
+    String data;
+    data+= "";
+    data+= "entry_583758502=";
+    data+= new_temperature;
+    data+= "entry_1838066570=";
+    data+= new_humidity;
+    data+= "entry_432135458";
+    data+= new_UV;
+    data+= "entry_196531609";
+    data+= dustVal;
+    data+= "entry_1506453406";
+    data+= new_HI;  
   
-  if (client.connect()) {
+  if (client.available()) {
  
-    client.print("POST /formResponse?formkey=");
-    client.print(formkey);
-    client.println("&ifq HTTP/1.1");
-    client.println("Host: spreadsheets.google.com");
-    client.println("Content-Type: application/x-www-form-urlencoded");
-    client.println("Connection: close");
-    client.print("Content-Length: ");
-    client.println(data.length());
-    client.println();
-    client.print(data);
-    client.println();
+      client.print("POST /formResponse?formkey=");
+      client.print(formkey);
+      client.println("&ifq HTTP/1.1");
+      client.println("Host: spreadsheets.google.com");
+      client.println("Content-Type: application/x-www-form-urlencoded");
+      client.println("Connection: close");
+      client.print("Content-Length: ");
+      client.println(data.length());
+      client.println();
+      client.print(data);
+      client.println();
+    }
+    delay(500);
+    if (!client.connected()){
+      client.print("disconnecting");
+      client.stop();
   }
-  delay(500);
-  if (!client.connected()){
-    client.print("disconnecting");
-    client.stop();
 }

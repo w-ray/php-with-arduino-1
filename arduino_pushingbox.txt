@@ -20,6 +20,7 @@ dht DHT;
 
 int i=0;
 int j=0;
+String data;
 
  
 int ledPower=5;
@@ -153,7 +154,7 @@ void loop()
   }
 }
 void datalist(){
-    String data;
+    
     data+= "";
     data+= "GET /pushingbox?devid=v4262C764FDBA371&temp=";
     data+= new_temperature;

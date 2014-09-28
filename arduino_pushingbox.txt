@@ -170,6 +170,7 @@ void datalist(){
     data+= "HTTP/1.1";
   }
   void sendData(){
+    client.println(data);
     client.println("Host: api.pushingbox.com");
     client.println("Connection: close");
     client.println();

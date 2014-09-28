@@ -9,6 +9,7 @@
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 char formkey[] = "13ByPmU3UYoo4uvdJYuDCIS1Y71lblAyUjWKokX-NGlk";
 char server[] = "api.pushingbox.com";
+byte ip[] = {192, 168, 1, 111};
 EthernetClient client;
  
  
@@ -56,7 +57,7 @@ int old_UV = 0;
 
 void setup()
 {
-  Ethernet.begin(mac);
+  Ethernet.begin(mac, ip);
   client.connect(server, 80);
   pinMode(ledPower,OUTPUT);
 } 

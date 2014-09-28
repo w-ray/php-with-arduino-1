@@ -1,15 +1,4 @@
-
-/*
- * Web Server
- *
- * A simple web server that shows the value of the analog input pins.
- *
- * Ethernet shield attached to pins 10, 11, 12, 13
- 
- *
- */ 
-
-
+//PAWMS
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -18,12 +7,15 @@
 #include <dht.h>
 
 
+
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] =  { 192, 168, 12, 50 }; 
 char formkey[] = "13ByPmU3UYoo4uvdJYuDCIS1Y71lblAyUjWKokX-NGlk";
 byte server[] = { 209,85,229,101 };
+EthernetClient client(server, 80);
+
  
-/* Set the DHT */
+
 dht DHT; 
 
 int i=0;
@@ -49,7 +41,6 @@ double new_humidity = 0.0;
 double F=0.0;
 double C=0.0;
 
-// Set the variable to get the Air-quality
 int old_air_Q_val = 0;
 int new_air_Q_val = 0;
 
@@ -62,11 +53,6 @@ int new_UV = 0;
 int old_UV_val = 0;
 int UV_val = 0;
 int old_UV = 0;
-
-char CurrentDateTime[20];
-
-
-EthernetServer server(80); 
 
 
 

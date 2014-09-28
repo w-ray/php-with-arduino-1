@@ -168,9 +168,9 @@ void loop()
     data+= "entry_432135458";
     data+= new_UV;
     data+= "entry_196531609";
-    data+= dustVal;
+    data+= new_air_Q_val;
     data+= "entry_1506453406";
-    data+= new_HI;  
+    data+= dustVal;  
   
   if (client.available()) {
  

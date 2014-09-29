@@ -1,0 +1,181 @@
+#include <SPI.h>
+#include <Ethernet.h>
+#include <stdio.h>
+#include <string.h>`  
+#include <dht.h>
+
+
+
+
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+char formkey[] = "1qVqrjN6ZaJiRK-Dxy3I0Q8ssGMdQIuNNhSWeiUfdDmM";
+char server[] = "api.pushingbox.com";
+IPAddress ip(192,168,12,50);
+EthernetClient client;
+ 
+
+
+
+/* Set the DHT */
+dht DHT; 
+
+int i=0;
+int j=0;
+String data;
+
+ 
+int ledPower=5;
+int delayTime=280;
+int delayTime2=40;
+float offTime=9680;
+
+int dustPin=1;
+double dustVal=0.0;
+double dustValraw=0.0;
+double old_dustVal=0.0;
+
+int DHT_PIN = 3;
+
+double old_temperature = 0.0;
+double new_temperature = 0.0;
+double old_humidity = 0.0;
+double new_humidity = 0.0;
+double F=0.0;
+double C=0.0;
+
+// Set the variable to get the Air-quality
+int old_air_Q_val = 0;
+int new_air_Q_val = 0;
+
+
+double new_HIF = 0.0;
+double new_HI = 0.0;
+double old_HI = 0.0;
+
+int new_UV = 0;
+int old_UV_val = 0;
+int UV_val = 0;
+int old_UV = 0;
+
+void setup()
+{
+  Ethernet.begin(mac,ip);
+  client.connect(server, 80);
+  pinMode(ledPower,OUTPUT);
+} 
+
+void readdata()
+{
+   // Get Humidity & Temperature with DT22
+          int chk = DHT.read22(DHT_PIN);
+          if(chk == DHTLIB_OK)
+          {
+              //old_humidity = new_humidity;
+              //old_temperature = new_temperature;
+              
+              new_humidity = DHT.humidity;
+              new_temperature = DHT.temperature;
+          }
+          
+          //heat index
+          //old_HI=new_HI;
+          F=new_temperature*9.0/5.0+32.0;
+          C=new_temperature;
+          //new_HIF=-42.379+2.04901523*F+10.14333127*new_humidity/100.0-0.22475541*F*new_humidity/100.0-0.00683783*F*F-0.05481717*new_humidity/100.0*new_humidity/100.0+0.00122874*F*F*new_humidity/100.0+0.00085282*F*new_humidity/100.0*new_humidity/100.0-0.00000199*F*F*new_humidity/100.0*new_humidity/100.0;
+          new_HIF=-42.379+2.04901523*F+10.14333127*new_humidity-0.22475541*F*new_humidity-0.00683783*F*F-0.05481717*new_humidity*new_humidity+0.00122874*F*F*new_humidity+0.00085282*F*new_humidity*new_humidity-0.00000199*F*F*new_humidity*new_humidity;
+        //  new_HI =-42.379+2.04901523*C+10.14333127*new_humidity/100.0-0.22475541*C*new_humidity/100.0-0.00683783*C*C-0.05481717*new_humidity/100.0*new_humidity/100.0+0.00122874*C*C*new_humidity/100.0+0.00085282*C*new_humidity/100.0*new_humidity/100.0-0.00000199*C*C*new_humidity/100.0*new_humidity/100.0;
+        new_HI=(new_HIF-32.0)*5.0/9.0;
+          if(new_HI<=new_temperature)
+          {
+            new_HI=new_temperature;
+          }
+          
+          // ledPower is any digital pin on the arduino connected to Pin 3 on the sensor
+	  digitalWrite(ledPower,LOW); // power on the LED
+	  delayMicroseconds(delayTime);
+          //old_dustVal=dustVal;
+	  dustValraw=analogRead(dustPin); // read the dust value via pin 5 on the sensor
+          dustVal=((dustValraw/1023.0*5.0)*0.17-0.1)*1000.0;
+          if(dustVal<=0.00)
+          {
+            dustVal=0.00;
+          }
+	  delayMicroseconds(delayTime2);
+	  digitalWrite(ledPower,HIGH); // turn the LED off
+	  delayMicroseconds(offTime);
+          
+          //old_air_Q_val = new_air_Q_val;
+          new_air_Q_val = analogRead(4);
+           
+          
+          // Get UV
+          //old_UV = new_UV;
+          //old_UV_val = UV_val;
+          UV_val = analogRead(0);
+          
+          if(UV_val < 10)
+            new_UV = 0;
+          else if(UV_val < 46)
+            new_UV = 1;
+          else if(UV_val < 65)
+            new_UV = 2;
+          else if(UV_val < 83)
+            new_UV = 3;
+          else if(UV_val < 103)
+            new_UV = 4;
+          else if(UV_val < 124)
+            new_UV = 5;
+          else if(UV_val < 142)
+            new_UV = 6;
+          else if(UV_val < 162)
+            new_UV = 7;
+          else if(UV_val < 180)
+            new_UV = 8;
+          else if(UV_val < 200)
+            new_UV = 9;
+          else if(UV_val < 221)
+            new_UV = 10;
+          else
+            new_UV = 11;        
+}
+
+
+
+void loop()
+{
+  //0.5s
+  if(j>=50)
+  {
+              readdata();
+              j=0;
+  }
+  else
+  {
+    j++;
+  }
+}
+void datalist(){
+    
+    data+= "";
+    data+= "GET /pushingbox?devid=v579B02100EC5F2E&temp=";
+    data+= new_temperature;
+    data+= "&humid=";
+    data+= new_humidity;
+    data+= "&uv=";
+    data+= new_UV;
+    data+= "&air=";
+    data+= new_air_Q_val;
+    data+= "&dustval=";
+    data+= dustVal;  
+    
+    data+= "&heatindex=";
+    data+= new_HI;
+    data+= "HTTP/1.1";
+  }
+  void sendData(){
+    client.println(data);
+    client.println("Host: api.pushingbox.com");
+    client.println("Connection: close");
+    client.println();
+}
+    
